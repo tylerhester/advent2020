@@ -10,20 +10,20 @@ using std::string;
 using std::unordered_map;
 
 int main() {
-    unordered_map<int, int> expenseReport;
+    unordered_map<float, float> expenseReport;
 
     ifstream report;
-    report.open("data/expensereport.txt");
+    report.open("expensereport.txt");
 
     string line;
 
-    while (!report.eof() && getline(report, line) && line.compare("")) {
-        int expense = stoi(line);
+    while (!report.eof() && getline(report, line)) {
+        float expense = stof(line);
         expenseReport[expense] = 2020 - expense;
     }
 
     for (auto kv : expenseReport) {
-        if (expenseReport[kv.second] == kv.first) {
+        if (expenseReport.count(kv.second)) {
             cout << kv.first * kv.second << endl;
             break;
         }
