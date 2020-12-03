@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <unordered_map>
 #include <vector>
 
 using std::cout;
@@ -59,8 +58,7 @@ vector<string> splitString(string str, char delim) {
 bool requiredInRange(string password, string req, int min, int max) {
     int total = 0;
     for (auto c : password) {
-        if (c == req[0])
-            total++;
+        if (c == req[0]) total++;
     }
     return total >= min && total <= max;
 }
