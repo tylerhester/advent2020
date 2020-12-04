@@ -6,7 +6,8 @@
 
 using namespace std;
 
-bool isValidPass(unordered_map<string, bool>);
+bool hasRequired(unordered_map<string, string>);
+bool isValidPass(unordered_map<string, string>);
 vector<string> splitString(string, string);
 
 int main() {
@@ -16,7 +17,7 @@ int main() {
     // corpus.open("testing4.txt");
     corpus.open("passports.txt");
 
-    unordered_map<string, bool> passport;
+    unordered_map<string, string> passport;
     while (getline(corpus, line) && !corpus.eof()) {
         // Check if empty line
         if (!line.compare("")) {
@@ -30,7 +31,7 @@ int main() {
             vector<string> kvs = splitString(line, " ");
             for (auto keyValue : kvs) {
                 vector<string> kv = splitString(keyValue, ":");
-                passport[kv[0]] = true;
+                passport[kv[0]] = kv[1];
             }
         }
     }
@@ -43,13 +44,49 @@ int main() {
     return 0;
 }
 
-bool isValidPass(unordered_map<string, bool> pass) {
-    bool valid = pass["byr"] && pass["iyr"] && pass["eyr"] && pass["hgt"] &&
-                 pass["hcl"] && pass["ecl"] && pass["pid"];
-    if ((pass["cid"] && valid) || (!pass["cid"] && valid))
+bool hasRequired(unordered_map<string, string> pass) {
+    bool valid = pass.count("byr") && pass.count("iyr") && pass.count("eyr") && pass.count("hgt") && pass.count("hcl") && pass.count("ecl") && pass.count("pid");
+    if ((pass.count("cid") && valid) || (!pass.count("cid") && valid))
         return true;
-    else
-        return false;
+    return false;
+}
+
+bool isValidPass(unordered_map<string, string> pass) {
+    bool valid = true;
+    // Check byr
+    string byr = pass["byr"];
+    int birthyr = stoi(byr);
+    
+    // Check iyr
+    string iyr = pass["iyr"];
+    int issueyr = stoi(iyr);
+
+    // Check eyr
+    string eyr = pass["eyr"];
+    int expireyr = stoi(eyr);
+
+    // Check hgt
+    // Get the number and the units
+
+
+    // Check hcl
+    // Check for # and alphanumeric in range
+
+
+    // Check ecl
+    // Check if valid from list
+
+
+    // Check pid
+    // Check if a 9 digit number
+
+
+    if(byr.length() != 4 || iyr.length() != 4 || eyr.length() != 4)
+        valid = false;
+    if((birthyr < 1920 || birthyr > 2002) || (issueyr < 2010 || issueyr > 2020) || (expireyr < 2020 || expireyr > 2030))
+        valid = false;
+
+    return valid;
 }
 
 vector<string> splitString(string str, string delim) {
