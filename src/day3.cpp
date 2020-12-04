@@ -1,93 +1,72 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <unordered_map>
 #include <vector>
 
 using std::cout;
 using std::endl;
 using std::ifstream;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 typedef std::numeric_limits<double> dbl;
 
-// In order to use vector as key in hashmap
-// We need to define the hasher
-struct hashVector {
-    int operator()(const vector<int>& vect) const {
-        int hash = vect.size();
-        for (auto& i : vect) {
-            hash ^= vect[i];
-        }
-        return hash;
-    }
-};
+double getPerf(vector<int>, vector<string>);
 
 int main() {
     string row;
     ifstream file;
     vector<string> geology;
-    unordered_map<vector<int>, int, hashVector> tobogganPerf;
-    file.open("testing3.txt");
-    // file.open("map.txt");
+    vector<vector<int>> toboggans;
+    // file.open("testing3.txt");
+    file.open("map.txt");
 
-    vector<int> slope = {1, 2};
-    tobogganPerf[slope] = 0;
+    vector<int> slope = {1, 1};
+    toboggans.push_back(slope);
     slope = {3, 1};
-    // tobogganPerf[slope] = 0;
+    toboggans.push_back(slope);
     slope = {5, 1};
-    // tobogganPerf[slope] = 0;
+    toboggans.push_back(slope);
     slope = {7, 1};
-    // tobogganPerf[slope] = 0;
+    toboggans.push_back(slope);
     slope = {1, 2};
-    // tobogganPerf[slope] = 0;
+    toboggans.push_back(slope);
 
-    // y = mx
-    getline(file, row);
-    cout << row << endl;
-
-    int m = 0;
-    int x = 1;
     while (getline(file, row) && !file.eof() && row.compare("")) {
-        for (auto kv : tobogganPerf) {
-            int m = kv.first[0];
-            if (kv.first[1] == 1) {
-                int y = (m * x) % row.size();
-                if (row[y] == '#') {
-                    if (row[y] == '#') {
-                        tobogganPerf[kv.first] = kv.second + 1;
-                        row[y] = 'X';
-                    } else {
-                        row[y] = 'O';
-                    }
-                } 
-            } else if (kv.first[1] == 2) {
-                int y = (m * x) % row.size();
-                if (!(x % 2)) {
-                    if (row[y] == '#') {
-                        tobogganPerf[kv.first] = kv.second + 1;
-                        row[y] = 'X';
-                    } else {
-                        row[y] = 'O';
-                    }
-                }
-            }
-        }
-        // Debugging
-        cout << row << endl;
-        x++;
+        geology.push_back(row);
     }
 
-    slope = {1, 2};
-    cout << "Part 1: " << tobogganPerf[slope] << endl;
+    cout << "Printing map..." << endl;
+    for(auto row : geology)
+        cout << row << endl;
+    cout << endl;
 
-    double part2 = 1;
-    for (auto kv : tobogganPerf) {
-        part2 *= kv.second;
+    cout << "Part 1: " << getPerf(toboggans[1], geology) << endl;
+    
+    double total = 1;
+    for (auto toboggan : toboggans) {
+        total *= getPerf(toboggan, geology);
+    
     }
     cout.precision(dbl::max_digits10);
-    cout << "Part 2: " << part2 << endl;
+    cout << "Part 2: " << total << endl;
+
+    file.close();
     return 0;
+}
+
+double getPerf(vector<int> toboggan, vector<string> geology) {
+    double totalHits = 0;
+    int x = 0;
+    for (int row = 0; row < geology.size(); row+=toboggan[1], x++) {
+        int y = (x * toboggan[0]) % geology[row].length(); 
+        if (geology[row][y] == '#') {
+            totalHits++;
+            geology[row][y] = 'X';
+        } else {
+            geology[row][y] = 'O';
+        }
+        // cout << geology[row] << endl;
+    }
+    return totalHits;
 }
