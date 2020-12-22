@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -8,12 +9,13 @@ using namespace std;
 
 bool hasRequired(unordered_map<string, string>);
 bool isValidPass(unordered_map<string, string>);
+void printPass(unordered_map<string, string>);
 vector<string> splitString(string, string);
 
 int main() {
     string line;
     ifstream corpus;
-    int validPasses = 0;
+    int part1, part2 = 0;
     // corpus.open("testing4.txt");
     corpus.open("passports.txt");
 
@@ -22,9 +24,18 @@ int main() {
         // Check if empty line
         if (!line.compare("")) {
             // Check validity and start new passport
-            if (isValidPass(passport)) {
-                validPasses++;
+            if (hasRequired(passport)) {
+                part1++;
+                if (isValidPass(passport)) {
+                    cout << "Valid > ";
+                    part2++;
+                } else {
+                    cout << "Invalid > ";
+                }
+            } else {
+                cout << "Req. Miss > ";
             }
+            printPass(passport);
             passport.clear();
         } else {
             // Process line and continue
@@ -37,56 +48,96 @@ int main() {
     }
 
     // Check the last passport
-    validPasses += isValidPass(passport);
+    part1 += (hasRequired(passport));
+    part2 += (hasRequired(passport) && isValidPass(passport));
+    cout << endl;
 
-    cout << "Part 1: " << validPasses << endl;
+    cout << "Part 1: " << part1 << endl;
+    cout << "Part 2: " << part2 << endl;
     corpus.close();
     return 0;
 }
 
+void printPass(unordered_map<string, string> pass) {
+    for (auto kv : pass) {
+        cout << " " << kv.first << ": " << kv.second;
+    }
+    cout << endl;
+}
+
 bool hasRequired(unordered_map<string, string> pass) {
-    bool valid = pass.count("byr") && pass.count("iyr") && pass.count("eyr") && pass.count("hgt") && pass.count("hcl") && pass.count("ecl") && pass.count("pid");
-    if ((pass.count("cid") && valid) || (!pass.count("cid") && valid))
-        return true;
-    return false;
+    bool valid = pass.count("byr") && pass.count("iyr") && pass.count("eyr") &&
+                 pass.count("hgt") && pass.count("hcl") && pass.count("ecl") &&
+                 pass.count("pid");
+    // if ((pass.count("cid") && valid) || (!pass.count("cid") && valid))
+    //    return true;
+    return valid;
 }
 
 bool isValidPass(unordered_map<string, string> pass) {
     bool valid = true;
-    // Check byr
-    string byr = pass["byr"];
-    int birthyr = stoi(byr);
-    
-    // Check iyr
-    string iyr = pass["iyr"];
-    int issueyr = stoi(iyr);
+    try {
+        // Check byr
+        string byr = pass["byr"];
+        int birthyr = stoi(byr);
+        if (birthyr < 1920 || birthyr > 2002) return false;
 
-    // Check eyr
-    string eyr = pass["eyr"];
-    int expireyr = stoi(eyr);
+        // Check iyr
+        string iyr = pass["iyr"];
+        int issueyr = stoi(iyr);
+        if (issueyr < 2010 || issueyr > 2020) return false;
 
-    // Check hgt
-    // Get the number and the units
+        // Check eyr
+        string eyr = pass["eyr"];
+        int expireyr = stoi(eyr);
+        if (expireyr < 2020 || expireyr > 2030) return false;
 
+        // Check hgt
+        // Get the number and the units
+        string hgt = pass["hgt"];
+        string units = hgt.substr(hgt.length() - 2);
+        string hStr = hgt.substr(0, hgt.length() - 2);
+        int height = stoi(hgt.substr(0, hgt.length() - 2));
+        if (!units.compare("cm")) {
+            if (height < 150 || height > 193) return false;
+        } else if (!units.compare("in")) {
+            if (height < 59 || height > 76) return false;
+        } else {
+            return false;
+        }
 
-    // Check hcl
-    // Check for # and alphanumeric in range
+        // Check hcl
+        // Check for # and alphanumeric in range
+        string hcl = pass["hcl"];
+        int hclPoundFound = hcl.find('#');
+        // Pound is always at start of string so always 0
+        if (!hclPoundFound) {
+            string hairColor = hcl.substr(hclPoundFound + 1);
+            if (hairColor.length() != 6) return false;
+            if (!regex_match(hairColor, regex("^[a-f0-9]*$"))) return false;
+        } else {
+            return false;
+        }
 
+        // Check ecl
+        // Check if valid from list
+        string ecl = pass["ecl"];
+        if (ecl.compare("amb") && ecl.compare("blu") && ecl.compare("brn") &&
+            ecl.compare("gry") && ecl.compare("grn") && ecl.compare("hzl") &&
+            ecl.compare("oth")) {
+            return false;
+        }
 
-    // Check ecl
-    // Check if valid from list
+        // Check pid
+        // Check if a 9 digit number
+        string pid = pass["pid"];
+        if (pid.length() != 9) return false;
+        if (!regex_match(pid, regex("^[0-9]*$"))) return false;
 
-
-    // Check pid
-    // Check if a 9 digit number
-
-
-    if(byr.length() != 4 || iyr.length() != 4 || eyr.length() != 4)
-        valid = false;
-    if((birthyr < 1920 || birthyr > 2002) || (issueyr < 2010 || issueyr > 2020) || (expireyr < 2020 || expireyr > 2030))
-        valid = false;
-
-    return valid;
+    } catch (...) {
+        return false;
+    }
+    return true;
 }
 
 vector<string> splitString(string str, string delim) {
