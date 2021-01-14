@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "computer/Computer.h"
+
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -10,78 +12,6 @@ using std::string;
 using std::vector;
 
 vector<string> splitStr(string str, string delim);
-
-class Instruction {
-   private:
-    string operation;
-    int argument;
-    bool visited;
-
-   public:
-    Instruction();
-    Instruction(string op, int arg) : operation(op), argument(arg), visited(false) { }
-
-    void setOperation(string op) { this->operation = op; }
-    void setArg(int arg) { this->argument = arg; }
-    void setVisited() { this->visited = true; }
-
-    string getOp() { return this->operation; }
-    int getArg() { return this->argument; }
-    bool getVisited() { return this->visited; }
-};
-
-class Computer {
-   private:
-    vector<Instruction> bootCode;
-    int accumulator;
-    int ptr;
-
-   public:
-    Computer() : accumulator(0), ptr(0) {}
-    Computer(vector<Instruction> bootCode) : bootCode(bootCode), accumulator(0), ptr(0) {}
-
-    void setBootCode(vector<Instruction> bc) { bootCode = bc; }
-
-    void run() {
-        while (ptr < bootCode.size()) {
-            cout << "Before > accumulator: " << accumulator << "; ptr: " << ptr << endl;
-            step();
-            cout << "After > accumulator: " << accumulator << "; ptr: " << ptr << endl;
-            cout << endl;
-        }
-    }
-
-    void step() {
-        Instruction& currIns = bootCode[ptr];
-
-        cout << currIns.getOp() << " " << currIns.getArg() << endl;
-
-        if (currIns.getVisited()) {
-            cout << "Already visited: ";
-            cout << accumulator << endl;
-            // Used to exit out once we've found the first repeated instruction
-            ptr = bootCode.size() + 1;
-            return;
-        } else {
-            currIns.setVisited();
-        }
-
-        string op = currIns.getOp();
-        if (!op.compare("acc")) {
-            acc(currIns.getArg());
-            ptr++;
-        } else if (!op.compare("jmp")) {
-            jmp(currIns.getArg());
-        } else {
-            // NOP or invalid
-            ptr++;
-        }
-    }
-
-    void acc(int inc) { accumulator += inc; }
-
-    void jmp(int idx) { ptr = ptr + idx; }
-};
 
 int main(int argc, char* argv[]) {
     ifstream file;
@@ -92,13 +22,61 @@ int main(int argc, char* argv[]) {
     string line;
     while (getline(file, line) && !file.eof()) {
         auto opArg = splitStr(line, " ");
+        
+        opcode op;
+        if(!opArg[0].compare("nop")) {
+           op = nop;
+        } else if(!opArg[0].compare("acc")) {
+           op = acc; 
+        } else if(!opArg[0].compare("jmp")) {
+            op = jmp;
+        }
 
-        Instruction nextInstruction(opArg[0], std::stoi(opArg[1]));
+        Instruction nextInstruction(op, std::stoi(opArg[1]));
         bootCode.push_back(nextInstruction);
     }
 
+    // Go through the 'memory' or the bootCode and swap a single nop for a jmp and vice versa
+    // Run the computer and see if it reaches the end
+    // If it does print out the value of the accumulator
+
     Computer gameBoy(bootCode);
+    // Part 1
     gameBoy.run();
+    cout << "Part 1: " << gameBoy.getAccumulator() << endl;
+
+    cout << "Part 2: " << endl;
+    vector<vector<Instruction>> possibleSolutions;
+    vector<Instruction> tempSolution = bootCode;
+    for (int i = 0; i < tempSolution.size(); i++) {
+        opcode op = tempSolution[i].getOp();
+        switch (op) {
+            case nop: {
+                tempSolution[i].setOp(jmp);
+                possibleSolutions.push_back(tempSolution);
+                tempSolution[i].setOp(nop);
+                break;
+            }
+            case jmp: {
+                tempSolution[i].setOp(nop);
+                possibleSolutions.push_back(tempSolution);
+                tempSolution[i].setOp(jmp);
+                break;
+            }
+            case acc: {
+                break;
+            }
+        }
+    }
+
+    cout << "Testing Solutions..." << endl;
+    for (auto sol : possibleSolutions) {
+        Computer tmp(sol);
+        tmp.run();
+        if (tmp.getStatus() == stopped) {
+            cout << "Solution > " << tmp.getAccumulator() << endl;
+        }
+    }
 
     file.close();
     return 0;
