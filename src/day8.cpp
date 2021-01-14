@@ -16,29 +16,25 @@ vector<string> splitStr(string str, string delim);
 int main(int argc, char* argv[]) {
     ifstream file;
     // file.open("testing8.txt");
-    file.open("console.txt");
+    file.open("input/console.txt");
 
     vector<Instruction> bootCode;
     string line;
     while (getline(file, line) && !file.eof()) {
         auto opArg = splitStr(line, " ");
-        
+
         opcode op;
-        if(!opArg[0].compare("nop")) {
-           op = nop;
-        } else if(!opArg[0].compare("acc")) {
-           op = acc; 
-        } else if(!opArg[0].compare("jmp")) {
+        if (!opArg[0].compare("nop")) {
+            op = nop;
+        } else if (!opArg[0].compare("acc")) {
+            op = acc;
+        } else if (!opArg[0].compare("jmp")) {
             op = jmp;
         }
 
         Instruction nextInstruction(op, std::stoi(opArg[1]));
         bootCode.push_back(nextInstruction);
     }
-
-    // Go through the 'memory' or the bootCode and swap a single nop for a jmp and vice versa
-    // Run the computer and see if it reaches the end
-    // If it does print out the value of the accumulator
 
     Computer gameBoy(bootCode);
     // Part 1

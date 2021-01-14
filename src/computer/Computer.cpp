@@ -14,13 +14,13 @@ int Computer::getStatus() { return status; }
 
 void Computer::run() {
     while (status != errored && status != stopped) {
-        //cout << bootCode[ptr].getOp() << " " << bootCode[ptr].getArg() << endl;
+        // cout << bootCode[ptr].getOp() << " " << bootCode[ptr].getArg() << endl;
         step();
     }
 }
 
 void Computer::step() {
-    if(ptr == bootCode.size()) {
+    if (ptr == bootCode.size()) {
         status = stopped;
         return;
     }

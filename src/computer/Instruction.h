@@ -2,11 +2,7 @@
 
 using std::string;
 
-enum opcode {
-    nop = 0,
-    acc = 1,
-    jmp = 2
-};
+enum opcode { nop = 0, acc = 1, jmp = 2 };
 
 class Instruction {
    private:

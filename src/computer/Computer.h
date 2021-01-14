@@ -1,17 +1,12 @@
-#include <vector>
 #include <string>
+#include <vector>
+
 #include "Instruction.h"
 
 using std::string;
 using std::vector;
 
-enum state {
-    stopped = 0,
-    running = 1,
-    standby = 2,
-    booting = 3,
-    errored = 4
-};
+enum state { stopped = 0, running = 1, standby = 2, booting = 3, errored = 4 };
 
 class Computer {
    private:
@@ -30,7 +25,7 @@ class Computer {
     void run();
     void step();
     void restart();
-    
+
     void acc(int inc);
     void jmp(int idx);
 };
